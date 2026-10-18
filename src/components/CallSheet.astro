@@ -1,0 +1,55 @@
+---
+import { SITE } from '../data/site';
+
+// Booking widget styled as a call sheet. It needs JavaScript to fill in the dates and build the email,
+// so it stays hidden without it; the plain email link next to it always works.
+const kinds = [
+  { value: 'coffee', label: 'Coffee in Athens' },
+  { value: 'call', label: 'Video call' },
+];
+const times = ['09:30', '11:00', '14:00', '17:30'];
+---
+
+<form class="callsheet" data-callsheet data-email={SITE.email} hidden>
+  <div class="cs-head">
+    <span class="cs-title">Call sheet</span>
+    <span class="cs-day">Day 01</span>
+  </div>
+
+  <fieldset class="cs-row">
+    <legend>Scene</legend>
+    <div class="cs-chips">
+      {
+        kinds.map((k, i) => (
+          <label class="cs-chip">
+            <input type="radio" name="kind" value={k.value} checked={i === 0} />
+            <span>{k.label}</span>
+          </label>
+        ))
+      }
+    </div>
+  </fieldset>
+
+  <fieldset class="cs-row">
+    <legend>Day</legend>
+    <div class="cs-chips" data-cs-days></div>
+  </fieldset>
+
+  <fieldset class="cs-row">
+    <legend>Call time</legend>
+    <div class="cs-chips">
+      {
+        times.map((t) => (
+          <label class="cs-chip">
+            <input type="radio" name="time" value={t} />
+            <span>{t}</span>
+          </label>
+        ))
+      }
+    </div>
+  </fieldset>
+
+  <p class="cs-summary" aria-live="polite" data-cs-summary>Pick a day and a call time.</p>
+  <button class="btn btn-primary cs-send" type="submit" disabled>Send the request</button>
+  <p class="cs-note">Opens your email app with everything filled in. Times are Athens time.</p>
+</form>

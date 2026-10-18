@@ -1,0 +1,156 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { Picture } from 'astro:assets';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Arrow from '../../components/Arrow.astro';
+import { SITE } from '../../data/site';
+import { url, chapterLabel } from '../../lib/paths';
+
+export const getStaticPaths = (async () => {
+  const chapters = (await getCollection('chapters', (c) => import.meta.env.DEV || !c.data.draft)).sort(
+    (a, b) => a.data.order - b.data.order,
+  );
+  return chapters.map((chapter, i) => ({
+    params: { slug: chapter.id },
+    props: { chapter, prev: chapters[i - 1], next: chapters[i + 1] },
+  }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  chapter: CollectionEntry<'chapters'>;
+  prev?: CollectionEntry<'chapters'>;
+  next?: CollectionEntry<'chapters'>;
+}
+
+const { chapter, prev, next } = Astro.props;
+const { Content } = await render(chapter);
+const d = chapter.data;
+const label = chapterLabel(chapter);
+const words = (chapter.body ?? '').split(/\s+/).filter(Boolean).length;
+const minutes = Math.max(1, Math.round(words / 220));
+
+const home = new URL(url(), Astro.site).href;
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: d.title,
+    headline: `${label}: ${d.title}`,
+    description: d.logline,
+    url: pageUrl,
+    genre: d.format,
+    ...(d.client && { sourceOrganization: { '@type': 'Organization', name: d.client } }),
+    author: { '@type': 'Person', '@id': `${home}#nefeli`, name: SITE.name },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: home },
+      { '@type': 'ListItem', position: 2, name: 'Chapters', item: `${home}#chapters` },
+      { '@type': 'ListItem', position: 3, name: d.title, item: pageUrl },
+    ],
+  },
+];
+
+const meta = [
+  ['Client', d.client],
+  ['Role', d.role],
+  ['Year', d.year],
+  ['Format', d.format],
+];
+---
+
+<Base
+  title={`${label}: ${d.title} | ${SITE.name}`}
+  description={`${d.logline} ${d.role} for ${d.client}, ${d.year}.`}
+  image={d.cover}
+  imageAlt={d.coverAlt}
+  type="article"
+  jsonLd={jsonLd}
+  noindex={d.draft}
+  paper
+>
+  <article class="chapter-page" data-scene={`${label}|${d.title}`}>
+    <nav class="crumbs wrap-narrow" aria-label="Breadcrumb">
+      <a href={`${url()}#chapters`}><Arrow dir="left" /> Contents</a>
+      <span aria-hidden="true">{minutes} min read</span>
+    </nav>
+
+    <header class="chapter-head wrap-narrow">
+      <p class="chapter-label">{label}{d.draft && <span class="draft-tag">Draft</span>}</p>
+      <h1 class="chapter-title">{d.title}</h1>
+      <p class="chapter-logline">{d.logline}</p>
+      <dl class="chapter-meta">
+        {
+          meta.map(([k, v]) => (
+            <div>
+              <dt>{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </header>
+
+    {
+      d.cover && (
+        <figure class="chapter-cover wrap-narrow">
+          <Picture src={d.cover} alt={d.coverAlt ?? ''} widths={[640, 960, 1280]} sizes="(min-width: 800px) 760px, 94vw" formats={['avif', 'webp']} />
+        </figure>
+      )
+    }
+
+    {
+      d.line && (
+        <blockquote class="the-line wrap-narrow">
+          <p>{d.line}</p>
+          <footer>The line</footer>
+        </blockquote>
+      )
+    }
+
+    <div class="chapter-body prose wrap-narrow">
+      <Content />
+      {
+        d.link && (
+          <p>
+            <a class="btn btn-primary" href={d.link.href} rel="noopener" target="_blank">
+              {d.link.text} <Arrow dir="out" />
+            </a>
+          </p>
+        )
+      }
+    </div>
+
+    <p class="fin" aria-hidden="true">End of chapter</p>
+
+    <nav class="chapter-nav wrap-narrow" aria-label="More chapters">
+      {
+        prev ? (
+          <a class="chapter-nav-link prev" href={url(`chapters/${prev.id}/`)}>
+            <span class="chapter-nav-label"><Arrow dir="left" /> {chapterLabel(prev)}<span class="visually-hidden">:</span></span>{' '}
+            <span class="chapter-nav-title">{prev.data.title}</span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next ? (
+          <a class="chapter-nav-link next" href={url(`chapters/${next.id}/`)}>
+            <span class="chapter-nav-label">{chapterLabel(next)}<span class="visually-hidden">:</span> <Arrow /></span>{' '}
+            <span class="chapter-nav-title">{next.data.title}</span>
+          </a>
+        ) : (
+          <a class="chapter-nav-link next" href={`${url()}#contact`}>
+            <span class="chapter-nav-label">Epilogue<span class="visually-hidden">:</span> <Arrow /></span>{' '}
+            <span class="chapter-nav-title">To be continued. Co-write it?</span>
+          </a>
+        )
+      }
+    </nav>
+  </article>
+</Base>

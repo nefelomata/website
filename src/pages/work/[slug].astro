@@ -1,0 +1,144 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { Picture, getImage } from 'astro:assets';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Arrow from '../../components/Arrow.astro';
+import { SITE } from '../../data/site';
+import { url } from '../../lib/paths';
+
+export const getStaticPaths = (async () => {
+  const films = (await getCollection('films')).sort((a, b) => a.data.order - b.data.order);
+  return films.map((film, i) => ({
+    params: { slug: film.id },
+    props: { film, next: films[(i + 1) % films.length], index: i, total: films.length },
+  }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  film: CollectionEntry<'films'>;
+  next: CollectionEntry<'films'>;
+  index: number;
+  total: number;
+}
+
+const { film, next, index, total } = Astro.props;
+const { Content } = await render(film);
+const d = film.data;
+const n = String(index + 1).padStart(2, '0');
+
+const home = new URL(url(), Astro.site).href;
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const stillUrl = new URL((await getImage({ src: d.still, width: 1200, format: 'jpg' })).src, Astro.site).href;
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Movie',
+    name: d.title,
+    ...(d.aka && { alternateName: d.aka }),
+    description: d.logline,
+    image: stillUrl,
+    url: pageUrl,
+    genre: d.format,
+    contributor: {
+      '@type': 'Role',
+      roleName: d.role,
+      contributor: { '@type': 'Person', '@id': `${home}#nefeli`, name: SITE.name },
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: home },
+      { '@type': 'ListItem', position: 2, name: 'Work', item: `${home}#work` },
+      { '@type': 'ListItem', position: 3, name: d.title, item: pageUrl },
+    ],
+  },
+];
+
+const slate = [
+  ['Prod.', d.title],
+  ['Role', d.role],
+  ['Format', d.format],
+  ['Year', d.year],
+  ['Made at', d.made],
+  ...(d.shoot ? [['Shoot', d.shoot]] : []),
+];
+---
+
+<Base
+  title={`${d.title}${d.aka ? ` (${d.aka})` : ''} · ${d.role} | ${SITE.name}`}
+  description={`${d.logline} ${d.format}, ${d.year}. ${SITE.name} worked on it as ${d.role.toLowerCase()}.`}
+  image={d.still}
+  imageAlt={d.stillAlt}
+  type="video.movie"
+  jsonLd={jsonLd}
+>
+  <article class="film-page wrap" data-scene={`Reel ${n}|${d.title}`}>
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href={`${url()}#work`}><Arrow dir="left" /> All films</a>
+      <span aria-hidden="true">Reel {n} / {String(total).padStart(2, '0')}</span>
+    </nav>
+
+    <header class="film-head">
+      <p class="slate"><span class="slate-sc">{d.role}</span> {d.format}</p>
+      <h1 class="film-page-title">
+        {d.title}{' '}
+        {d.aka && <span class="film-page-aka"><span class="visually-hidden">(</span>{d.aka}<span class="visually-hidden">)</span></span>}
+      </h1>
+      <p class="film-page-logline">{d.logline}</p>
+    </header>
+
+    <figure class="film-still">
+      <Picture
+        src={d.still}
+        alt={d.stillAlt}
+        widths={[640, 960, 1100]}
+        sizes="(min-width: 1320px) 1240px, 94vw"
+        formats={['avif', 'webp']}
+        loading="eager"
+        fetchpriority="high"
+        style={`view-transition-name: still-${film.id}`}
+      />
+      <span class="edge-print" aria-hidden="true">NK 5219 ▸ {n} ▸ {n}A</span>
+    </figure>
+
+    <div class="film-body">
+      <dl class="slate-table">
+        {
+          slate.map(([k, v]) => (
+            <div>
+              <dt>{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+      <div class="prose">
+        <Content />
+      </div>
+      {
+        d.duties.length > 0 && (
+          <section class="duties" aria-labelledby="duties-title">
+            <h2 id="duties-title" class="duties-title">My call sheet</h2>
+            <ol role="list">
+              {d.duties.map((duty, i) => (
+                <li>
+                  <span class="duty-n">{String(i + 1).padStart(2, '0')}</span>
+                  {duty}
+                </li>
+              ))}
+            </ol>
+          </section>
+        )
+      }
+    </div>
+
+    <a class="next-reel" href={url(`work/${next.id}/`)} data-cursor="Next">
+      <span class="next-label">Next reel<span class="visually-hidden">:</span></span>{' '}
+      <span class="next-title">{next.data.title} <Arrow /></span>{' '}
+      <span class="next-role">{next.data.role}</span>
+    </a>
+  </article>
+</Base>

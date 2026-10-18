@@ -1,0 +1,28 @@
+---
+import Arrow from './Arrow.astro';
+import Cloud from './Cloud.astro';
+import { SITE } from '../data/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="footer-sky" data-sky data-scene="Wrap|That's a wrap">
+    <div class="sky-layer" aria-hidden="true">
+      <Cloud name="bank-left" class="fc-left" />
+      <Cloud name="bank-right" class="fc-right" />
+    </div>
+    <p class="wrap-word reveal" aria-hidden="true">
+      <span>That's</span> <span>a</span> <span class="af">wrap.</span>
+    </p>
+    <div class="sky-layer sky-near" aria-hidden="true">
+      <Cloud name="puff" class="fc-near" sizes="(min-width: 900px) 45vw, 90vw" />
+    </div>
+  </div>
+  <div class="credits wrap">
+    <p>© {year} {SITE.name}</p>
+    <p class="credits-joke">No crew members were harmed in the making of this website.</p>
+    <p class="runtime" hidden>Runtime <span data-runtime>00:00:00</span></p>
+    <a class="to-top" href="#main">Back to top <Arrow dir="up" /></a>
+  </div>
+</footer>

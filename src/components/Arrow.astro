@@ -1,0 +1,19 @@
+---
+// Small inline arrow so every arrow on the site looks the same, whatever font loads.
+interface Props {
+  dir?: 'right' | 'left' | 'up' | 'down' | 'out';
+}
+const { dir = 'right' } = Astro.props;
+const rotate = { right: 0, down: 90, left: 180, up: 270, out: -45 }[dir];
+---
+
+<svg
+  class="arrow"
+  viewBox="0 0 16 16"
+  width="1em"
+  height="1em"
+  aria-hidden="true"
+  style={`transform: rotate(${rotate}deg)`}
+>
+  <path d="M2 8h11M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>

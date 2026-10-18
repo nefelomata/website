@@ -1,0 +1,47 @@
+---
+import { Picture } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import Arrow from './Arrow.astro';
+import { url } from '../lib/paths';
+
+interface Props {
+  film: CollectionEntry<'films'>;
+  index: number;
+  // Columns out of 12 on wide screens.
+  span: number;
+  eager?: boolean;
+}
+
+const { film, index, span, eager = false } = Astro.props;
+const { title, aka, role, logline, year, still, stillAlt } = film.data;
+const n = String(index + 1).padStart(2, '0');
+---
+
+<li class="film reveal" style={`--span:${span}`}>
+  <a class="film-link" href={url(`work/${film.id}/`)} data-cursor="Credits">
+    <div class="film-media">
+      <Picture
+        src={still}
+        alt={stillAlt}
+        widths={[480, 760, 1100]}
+        sizes={`(min-width: 900px) ${Math.round((span / 12) * 100)}vw, 100vw`}
+        formats={['avif', 'webp']}
+        loading={eager ? 'eager' : 'lazy'}
+        style={`view-transition-name: still-${film.id}`}
+      />
+      <span class="edge-print" aria-hidden="true">NK 5219 ▸ {n} ▸ {n}A</span>
+    </div>
+    <span class="chip film-role">{role}</span>{' '}
+    <div class="film-meta">
+      <h3 class="film-title">
+        {title}{' '}
+        {aka && <span class="film-aka"><span class="visually-hidden">(</span>{aka}<span class="visually-hidden">)</span></span>}
+      </h3>
+      <p class="film-logline">{logline}</p>
+      <p class="film-foot">
+        <span>{year}</span>{' '}
+        <span class="film-cta">Credits <Arrow /></span>
+      </p>
+    </div>
+  </a>
+</li>

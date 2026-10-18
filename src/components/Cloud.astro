@@ -1,0 +1,29 @@
+---
+// A decorative cloud (nefeli is Greek for cloud). The images come from scripts/make-clouds.mjs.
+import { Image } from 'astro:assets';
+import bankLeft from '../assets/clouds/bank-left.png';
+import bankRight from '../assets/clouds/bank-right.png';
+import puff from '../assets/clouds/puff.png';
+
+const CLOUDS = { 'bank-left': bankLeft, 'bank-right': bankRight, puff };
+
+interface Props {
+  name: keyof typeof CLOUDS;
+  class?: string;
+  sizes?: string;
+}
+
+const { name, class: className, sizes = '(min-width: 900px) 70vw, 150vw' } = Astro.props;
+---
+
+<Image
+  src={CLOUDS[name]}
+  alt=""
+  class:list={['cloud', className]}
+  widths={[600, 1000, 1400]}
+  sizes={sizes}
+  format="webp"
+  quality={70}
+  loading="lazy"
+  decoding="async"
+/>

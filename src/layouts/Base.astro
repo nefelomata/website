@@ -1,0 +1,57 @@
+---
+import '@fontsource-variable/inter/opsz.css';
+import '@fontsource-variable/jetbrains-mono/wght.css';
+import '../styles/global.css';
+import type { ComponentProps } from 'astro/types';
+import Seo from '../components/Seo.astro';
+import Hud from '../components/Hud.astro';
+import Footer from '../components/Footer.astro';
+import { url } from '../lib/paths';
+
+type Props = ComponentProps<typeof Seo> & {
+  // Chapter pages are printed on paper: light background, ink text, whatever the house lights say.
+  paper?: boolean;
+};
+
+const { paper = false, ...seo } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <Seo {...seo} />
+    <meta name="theme-color" content="#0b0a10" />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+    <link rel="icon" href={url('favicon-32.png')} sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href={url('apple-touch-icon.png')} />
+    <link rel="sitemap" href={url('sitemap-index.xml')} />
+    <script is:inline>
+      // Restore the house lights before first paint, so a light-mode visitor never sees a dark flash.
+      try {
+        var t = localStorage.getItem('nk-lights');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch (e) {}
+      // Hide below-the-fold sections so they can fade in. If the main script never runs, show them anyway.
+      document.documentElement.classList.add('reveal-ready');
+      setTimeout(function () {
+        if (!window.__nk) document.documentElement.classList.remove('reveal-ready');
+      }, 3000);
+    </script>
+  </head>
+  <body class:list={{ 'is-paper': paper }}>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Hud />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <div class="grain" aria-hidden="true"></div>
+    <div class="cursor" aria-hidden="true"><span class="cursor-label"></span></div>
+    <script>
+      import '../scripts/main.ts';
+    </script>
+  </body>
+</html>

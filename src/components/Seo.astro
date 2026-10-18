@@ -1,0 +1,55 @@
+---
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { SITE } from '../data/site';
+import { url } from '../lib/paths';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: ImageMetadata;
+  imageAlt?: string;
+  type?: 'website' | 'article' | 'video.movie' | 'profile';
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  noindex?: boolean;
+}
+
+const {
+  title = SITE.title,
+  description = SITE.description,
+  image,
+  imageAlt = `${SITE.name}, film production and copywriting`,
+  type = 'website',
+  jsonLd,
+  noindex = false,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+// Social cards need an absolute URL. Page-specific stills get a 1200px JPEG; everything else uses the default card.
+const ogPath = image
+  ? (await getImage({ src: image, width: 1200, format: 'jpg', quality: 82 })).src
+  : url('og.jpg');
+const ogImage = new URL(ogPath, Astro.site).href;
+const schema = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical.href} />
+{noindex && <meta name="robots" content="noindex" />}
+<meta name="author" content={SITE.name} />
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical.href} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:alt" content={imageAlt} />
+<meta property="og:locale" content={SITE.locale} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+{schema.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}

@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import Arrow from '../components/Arrow.astro';
+import { SITE } from '../data/site';
+import { url } from '../lib/paths';
+---
+
+<Base title={`Scene missing | ${SITE.name}`} description="This page ended up on the cutting room floor." noindex>
+  <section class="missing wrap" data-scene="SC.404|Scene missing">
+    <p class="slate"><span class="slate-sc">404</span> Scene missing</p>
+    <h1 class="missing-title">Cut.</h1>
+    <p class="lede">This page ended up on the cutting room floor. Happens to the best of us, and to most first drafts.</p>
+    <a class="btn btn-primary" href={url()}>Back to the top <Arrow /></a>
+  </section>
+</Base>
