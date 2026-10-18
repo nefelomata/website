@@ -1,0 +1,7 @@
+# Never convert line endings in binary assets.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.avif binary
+*.woff2 binary
