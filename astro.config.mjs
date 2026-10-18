@@ -2,10 +2,10 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
-// Where the site lives. GitHub Pages serves this repo at nefelomata.github.io/website/.
-// With a custom domain, set SITE_URL=https://yourdomain.com and BASE_PATH=/ (or edit the defaults).
-const site = process.env.SITE_URL ?? 'https://nefelomata.github.io';
-const base = process.env.BASE_PATH ?? '/website';
+// Where the site lives: the custom domain from the CNAME file, served from the root.
+// To preview it under GitHub's own URL instead, set SITE_URL=https://nefelomata.github.io and BASE_PATH=/website.
+const site = process.env.SITE_URL ?? 'https://nefelomata.com';
+const base = process.env.BASE_PATH ?? '/';
 
 export default defineConfig({
   site,

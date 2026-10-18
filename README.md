@@ -48,18 +48,13 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:4321/website/. `npm run build` makes the production site in `dist/`, `npm run preview` serves that build, and `npm run check` type-checks everything.
+Then open http://localhost:4321/. `npm run build` makes the production site in `dist/`, `npm run preview` serves that build, and `npm run check` type-checks everything.
 
 ## Publish
 
-The workflow in `.github/workflows/deploy.yml` builds and publishes to GitHub Pages on every push to `main`. One-time setup: repository **Settings → Pages → Source: GitHub Actions**. The site then lives at https://nefelomata.github.io/website/.
+The workflow in `.github/workflows/deploy.yml` builds and publishes to GitHub Pages on every push to `main`. One-time setup: repository **Settings → Pages → Source: GitHub Actions**.
 
-### Custom domain
-
-When there's a domain (say `nefelikoumantaki.com`):
-
-1. Add it in **Settings → Pages → Custom domain** and point the DNS at GitHub Pages.
-2. In `astro.config.mjs`, change the defaults to `site = 'https://nefelikoumantaki.com'` and `base = '/'`.
+The site lives at https://nefelomata.com (set in **Settings → Pages → Custom domain**, and in the `CNAME` file). If the domain ever changes, update it there and in the `site` default in `astro.config.mjs`.
 
 ## SEO, accessibility, performance
 
